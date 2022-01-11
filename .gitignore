@@ -1,0 +1,6 @@
+# Does not track the default folder for the results
+results/*
+
+obj/*
+
+stgp_exec
