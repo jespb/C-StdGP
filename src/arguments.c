@@ -19,13 +19,13 @@ char** OPERATORS;
 int MAX_DEPTH = 6;
 
 // Number of models in the population
-int POPULATION_SIZE = 200;
+int POPULATION_SIZE = 500;
 
 // Maximum number of iterations
-int MAX_GENERATION = 200;
+int MAX_GENERATION = 100;
 
 // Fraction of the dataset to be used as training (used by Main_M3GP_standalone.py)
-double TRAIN_FRACTION = 0.30;
+double TRAIN_FRACTION = 0.70;
 
 // Number of individuals to be used in the tournament
 int TOURNAMENT_SIZE = 5;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include <node.h>
 #include <individual.h>
@@ -239,7 +240,19 @@ int main(int argc, char* argv[]){
 	*/
 
 	// ---------------------------------------------- OUTPUT FILE
-
+	/*
+	DIR* outdir = opendir(OUTPUT_DIR);
+	if (outdir) {
+		/* Directory exists. /
+		closedir(outdir);
+	} else 
+	if (errno == ENOENT) {
+		/* Directory does not exist. /
+		os.mkdir(OUTPUT_DIR, 0700);
+	}
+	*/
+	mkdir(OUTPUT_DIR, 0700);
+	
 	char* outname = calloc( (strlen(OUTPUT_DIR) +7+ strlen(DATASETS[0]) +1), sizeof(char) );
 	strcat(outname, OUTPUT_DIR);
 	strcat(outname, "stgp_c_");

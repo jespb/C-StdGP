@@ -10,10 +10,13 @@ FLAGS = -I$(IDIR)# -lm -Wall
 
 ## compila so o 1º ficheiro.o
 
-all: compile #execute clean
+all: objdir compile clean
+
+objdir:
+	mkdir -p $(ODIR)
 
 compile: arguments.o node.o individual.o geneticoperators.o STGP.o main.o
-	gcc $(ODIR)/STGP.o $(ODIR)/geneticoperators.o $(ODIR)/individual.o $(ODIR)/node.o $(ODIR)/main.o -o executavel  -lm
+	gcc $(ODIR)/STGP.o $(ODIR)/geneticoperators.o $(ODIR)/individual.o $(ODIR)/node.o $(ODIR)/main.o -o exec_StdGP  -lm
 
 STGP.o: $(SDIR)/STGP.c $(IDIR)/STGP.h $(IDIR)/geneticoperators.h $(IDIR)/individual.h
 	gcc -c $(SDIR)/STGP.c $(FLAGS) -o $(ODIR)/STGP.o
@@ -33,10 +36,6 @@ arguments.o: $(SDIR)/arguments.c
 main.o: $(SDIR)/main.c $(IDIR)/STGP.h
 	gcc -c $(SDIR)/main.c $(FLAGS) -o $(ODIR)/main.o 
 
-execute:
-	#valgrind --leak-check=yes ./stgp_exec
-	./stgp_exec
-
 clean:
-	rm obj/*.o 
-	rm executavel
+	rm -r obj/ 
+	#rm exec_StdGP
