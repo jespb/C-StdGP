@@ -15,11 +15,11 @@ all: objdir compile clean
 objdir:
 	mkdir -p $(ODIR)
 
-compile: arguments.o node.o individual.o geneticoperators.o STGP.o main.o
-	gcc $(ODIR)/STGP.o $(ODIR)/geneticoperators.o $(ODIR)/individual.o $(ODIR)/node.o $(ODIR)/main.o -o exec_StdGP  -lm
+compile: arguments.o node.o individual.o geneticoperators.o StdGP.o main.o
+	gcc $(ODIR)/StdGP.o $(ODIR)/geneticoperators.o $(ODIR)/individual.o $(ODIR)/node.o $(ODIR)/main.o -o exec_StdGP  -lm
 
-STGP.o: $(SDIR)/STGP.c $(IDIR)/STGP.h $(IDIR)/geneticoperators.h $(IDIR)/individual.h
-	gcc -c $(SDIR)/STGP.c $(FLAGS) -o $(ODIR)/STGP.o
+StdGP.o: $(SDIR)/StdGP.c $(IDIR)/StdGP.h $(IDIR)/geneticoperators.h $(IDIR)/individual.h
+	gcc -c $(SDIR)/StdGP.c $(FLAGS) -o $(ODIR)/StdGP.o
 
 geneticoperators.o: $(SDIR)/geneticoperators.c $(IDIR)/geneticoperators.h $(IDIR)/individual.h $(IDIR)/node.h
 	gcc -c $(SDIR)/geneticoperators.c $(FLAGS) -o $(ODIR)/geneticoperators.o
@@ -33,7 +33,7 @@ node.o: $(SDIR)/node.c $(IDIR)/node.h
 arguments.o: $(SDIR)/arguments.c
 	gcc -c $(SDIR)/arguments.c $(FLAGS) -o $(ODIR)/arguments.o
 
-main.o: $(SDIR)/main.c $(IDIR)/STGP.h
+main.o: $(SDIR)/main.c $(IDIR)/StdGP.h
 	gcc -c $(SDIR)/main.c $(FLAGS) -o $(ODIR)/main.o 
 
 clean:
