@@ -48,6 +48,10 @@ struct StdGP_t* stdgp_create(int n_operators, char** operators, int n_terminals,
 
 	stdgp->trainingAccuracyOverTime = calloc( max_generation +1, sizeof(double));
 	stdgp->testAccuracyOverTime = calloc( max_generation +1, sizeof(double));
+	stdgp->trainingWaFOverTime = calloc( max_generation +1, sizeof(double));
+	stdgp->testWaFOverTime = calloc( max_generation +1, sizeof(double));
+	stdgp->trainingKappaOverTime = calloc( max_generation +1, sizeof(double));
+	stdgp->testKappaOverTime = calloc( max_generation +1, sizeof(double));
 	stdgp->trainingRMSEOverTime = calloc( max_generation +1, sizeof(double));
 	stdgp->testRMSEOverTime = calloc( max_generation +1, sizeof(double));
 	stdgp->fitnessOverTime = calloc( max_generation +1, sizeof(double));
@@ -69,6 +73,10 @@ struct StdGP_t* stdgp_create(int n_operators, char** operators, int n_terminals,
 void stdgp_destroy(struct StdGP_t* stdgp){
 	free(stdgp->trainingAccuracyOverTime);
 	free(stdgp->testAccuracyOverTime);
+	free(stdgp->trainingWaFOverTime);
+	free(stdgp->testWaFOverTime);
+	free(stdgp->trainingKappaOverTime);
+	free(stdgp->testKappaOverTime);
 	free(stdgp->trainingRMSEOverTime);
 	free(stdgp->testRMSEOverTime);
 	free(stdgp->fitnessOverTime);
@@ -112,7 +120,7 @@ void fit(struct StdGP_t* stdgp){
 		long duration = 0;
 
 		if (!stoppingCriteria(stdgp)) {
-			if (stdgp->verbose && stdgp->currentGeneration%1==0) printf("Generation %3d:\n", stdgp->currentGeneration );
+			if (stdgp->verbose && stdgp->currentGeneration%1==0) printf("Generation %3d:", stdgp->currentGeneration );
 
     		clock_t before = clock();
 			nextGeneration(stdgp);
@@ -124,6 +132,10 @@ void fit(struct StdGP_t* stdgp){
 
     	stdgp->trainingAccuracyOverTime[ stdgp->currentGeneration ] = getAccuracy(stdgp->bestIndividual, stdgp->n_training_samples, stdgp->training_X, stdgp->training_Y);
 		stdgp->testAccuracyOverTime[ stdgp->currentGeneration ] = getAccuracy(stdgp->bestIndividual, stdgp->n_test_samples, stdgp->test_X, stdgp->test_Y);
+    	stdgp->trainingWaFOverTime[ stdgp->currentGeneration ] = getWaF(stdgp->bestIndividual, stdgp->n_training_samples, stdgp->training_X, stdgp->training_Y);
+		stdgp->testWaFOverTime[ stdgp->currentGeneration ] = getWaF(stdgp->bestIndividual, stdgp->n_test_samples, stdgp->test_X, stdgp->test_Y);
+    	stdgp->trainingKappaOverTime[ stdgp->currentGeneration ] = getKappa(stdgp->bestIndividual, stdgp->n_training_samples, stdgp->training_X, stdgp->training_Y);
+		stdgp->testKappaOverTime[ stdgp->currentGeneration ] = getKappa(stdgp->bestIndividual, stdgp->n_test_samples, stdgp->test_X, stdgp->test_Y);
 		stdgp->trainingRMSEOverTime[ stdgp->currentGeneration ] = getRMSE(stdgp->bestIndividual, stdgp->n_training_samples, stdgp->training_X, stdgp->training_Y);
 		stdgp->testRMSEOverTime[ stdgp->currentGeneration ] = getRMSE(stdgp->bestIndividual, stdgp->n_test_samples, stdgp->test_X, stdgp->test_Y);
 		stdgp->fitnessOverTime[ stdgp->currentGeneration ] = getFitness(stdgp->bestIndividual, stdgp->n_training_samples, stdgp->training_X, stdgp->training_Y);

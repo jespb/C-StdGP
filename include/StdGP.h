@@ -42,6 +42,10 @@ struct StdGP_t {
 
 	double* trainingAccuracyOverTime;
 	double* testAccuracyOverTime; 
+	double* trainingWaFOverTime;
+	double* testWaFOverTime; 
+	double* trainingKappaOverTime;
+	double* testKappaOverTime; 
 	double* trainingRMSEOverTime; 
 	double* testRMSEOverTime;
 	double* fitnessOverTime;

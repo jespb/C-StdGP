@@ -279,7 +279,7 @@ int main(int argc, char* argv[]){
 	}
 	fputs("\n\n", out);
 
-	printf("OUTPUT TR-ACC...\n");
+	printf("OUTPUT TR-Accuracy...\n");
 	for (int run = 0; run < RUNS; run++){
 		sprintf(buff, "Training-Accuracy,%d,", run);
 		fputs(buff, out);	
@@ -291,12 +291,60 @@ int main(int argc, char* argv[]){
 	}
 	fputs("\n", out);
 
-	printf("OUTPUT TE-ACC...\n");
+	printf("OUTPUT TE-Accuracy...\n");
 	for (int run = 0; run < RUNS; run++){
 		sprintf(buff, "Test-Accuracy,%d,", run);
 		fputs(buff, out);	
 		for (int i = 0; i < MAX_GENERATION; ++i){
 			sprintf(buff, "%f,", models[run]->testAccuracyOverTime[i]);
+			fputs(buff, out);
+		}
+		fputs("\n", out);
+	}
+	fputs("\n", out);
+
+	printf("OUTPUT TR-WaF...\n");
+	for (int run = 0; run < RUNS; run++){
+		sprintf(buff, "Training-WaF,%d,", run);
+		fputs(buff, out);	
+		for (int i = 0; i < MAX_GENERATION; ++i){
+			sprintf(buff, "%f,", models[run]->trainingWaFOverTime[i]);
+			fputs(buff, out);
+		}
+		fputs("\n", out);
+	}
+	fputs("\n", out);
+
+	printf("OUTPUT TE-WaF...\n");
+	for (int run = 0; run < RUNS; run++){
+		sprintf(buff, "Test-WaF,%d,", run);
+		fputs(buff, out);	
+		for (int i = 0; i < MAX_GENERATION; ++i){
+			sprintf(buff, "%f,", models[run]->testWaFOverTime[i]);
+			fputs(buff, out);
+		}
+		fputs("\n", out);
+	}
+	fputs("\n", out);
+
+	printf("OUTPUT TR-Kappa...\n");
+	for (int run = 0; run < RUNS; run++){
+		sprintf(buff, "Training-Kappa,%d,", run);
+		fputs(buff, out);	
+		for (int i = 0; i < MAX_GENERATION; ++i){
+			sprintf(buff, "%f,", models[run]->trainingKappaOverTime[i]);
+			fputs(buff, out);
+		}
+		fputs("\n", out);
+	}
+	fputs("\n", out);
+
+	printf("OUTPUT TE-Kappa...\n");
+	for (int run = 0; run < RUNS; run++){
+		sprintf(buff, "Test-Kappa,%d,", run);
+		fputs(buff, out);	
+		for (int i = 0; i < MAX_GENERATION; ++i){
+			sprintf(buff, "%f,", models[run]->testKappaOverTime[i]);
 			fputs(buff, out);
 		}
 		fputs("\n", out);

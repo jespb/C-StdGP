@@ -102,7 +102,7 @@ double getFitness(struct individual_t* ind, int n_samples, double** training_X, 
 		if (isFitnessRMSE){
 			ind->fitness = getRMSE(ind, n_samples, training_X, training_Y) * (-1) +1; // negative for fitness, +1 to ser maximum as 1 (like accuracy) 
 		}else{
-			ind->fitness = getAccuracy(ind, n_samples, training_X, training_Y);
+			ind->fitness = getWaF(ind, n_samples, training_X, training_Y);
 		}
 
 		ind->fit_calculated = 1;
@@ -131,6 +131,61 @@ double getAccuracy(struct individual_t* ind, int n_samples, double** X, double* 
 	free(pred_c);
 
 	return hits*1.0/n_samples;
+
+}
+
+double getWaF(struct individual_t* ind, int n_samples, double** X, double* Y){ // TODO
+	int* pred_c = predict_individual(ind, n_samples, X);
+
+	int* hits = calloc( 0, sizeof(int) * 5 );
+	
+	for (int i = 0; i < n_samples; ++i){
+		hits[ pred_c[i] + 2* (int)Y[i] ] ++;
+	}
+
+	if ( hits[0]+hits[1] == 0 || hits[0]+hits[2] == 0 || hits[3]+hits[1] == 0 || hits[3]+hits[2] == 0){
+		return 0; // the model is ignoring one of the classes
+	}
+
+	double p_1 = 1.0*hits[0]/(hits[0]+hits[1]);
+	double r_1 = 1.0*hits[0]/(hits[0]+hits[2]);
+	double f1_1 = 2.0*p_1*r_1/(p_1+r_1); 
+	double sup1 = 1.0*(hits[0]+hits[1])/n_samples;
+
+	double p_2 = 1.0*hits[3]/(hits[3]+hits[2]);
+	double r_2 = 1.0*hits[3]/(hits[3]+hits[1]);
+	double f1_2 = 2.0*p_2*r_2/(p_2+r_2);
+	double sup2 = 1.0*(hits[2]+hits[3])/n_samples;
+
+	free(pred_c);
+	free(hits);
+
+
+	return f1_1*sup1 + f1_2*sup2;
+
+}
+
+double getKappa(struct individual_t* ind, int n_samples, double** X, double* Y){ // TODO
+	int* pred_c = predict_individual(ind, n_samples, X);
+
+	int* hits = calloc( 0, sizeof(int) * 5 );
+	
+	for (int i = 0; i < n_samples; ++i){
+		hits[ pred_c[i] + 2* (int)Y[i] ] ++;
+	}
+
+	double observed_agreement = 1.0*(hits[0]+hits[3])/n_samples;
+
+	double yes1 = 1.0*(hits[0]+hits[1])/n_samples;
+	double yes2 = 1.0*(hits[0]+hits[2])/n_samples;
+	double no1 = 1.0*(hits[2]+hits[3])/n_samples;
+	double no2 = 1.0*(hits[1]+hits[3])/n_samples;
+	double chance_agreement = yes1*yes2 + no1*no2;
+
+	free(pred_c);
+	free(hits);
+
+	return (observed_agreement - chance_agreement)/(1-chance_agreement);
 
 }
 

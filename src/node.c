@@ -143,12 +143,14 @@ char* toString_node( struct node_t *node, char** ops, char** term){
 		char* l = toString_node(node->left, ops, term);
 		char* r = toString_node(node->right, ops, term);
 
-		char* ret = calloc(2 + strlen(ops[node->value]) + strlen(l) + strlen(r) + 1, sizeof(char) );
-		strcat(ret, "(");
+		char* ret = calloc(6 + strlen(ops[node->value]) + strlen(l) + strlen(r) + 1, sizeof(char) );
+		strcat(ret, "( ");
 		strcat(ret, l );
+		strcat(ret, " ");
 		strcat(ret, ops[node->value]);
+		strcat(ret, " ");
 		strcat(ret, r );
-		strcat(ret, ")");
+		strcat(ret, " )");
 
 		free(l);
 		free(r);

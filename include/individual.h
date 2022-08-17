@@ -62,6 +62,8 @@ double* getTrainingValuePredictions(struct individual_t* ind);
 int* getTrainingClassPredictions(struct individual_t* ind);
 
 double getAccuracy(struct individual_t* ind, int n_samples, double** X, double* Y);
+double getWaF(struct individual_t* ind, int n_samples, double** X, double* Y);
+double getKappa(struct individual_t* ind, int n_samples, double** X, double* Y);
 double getRMSE(struct individual_t* ind, int n_samples, double** X, double* Y);
 
 double* calculate_individual(struct individual_t* ind, int n_samples, double** X);
