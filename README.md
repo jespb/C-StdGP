@@ -73,13 +73,13 @@ $ python Main_StdGP_standalone.py
 
 How to use this implementation:
 	$ make
-	$ ./stdgp [parameters]
+	$ ./exec_StdGP [parameters]
 
 
 Useful methods:
-	$ struct StdGP_t* model = stdgp_create( ... )			-> creates the population;
-	$ fit(model)										-> trains the model;
-	$ predict_classification(model, X, No_of_samples)   -> Returns a list with the prediction of the given dataset.
+	$ struct StdGP_t* model = stdgp_create( ... )		-> creates the population;
+	$ fit(model)						-> trains the model;
+	$ predict_classification(model, X, No_of_samples)	-> Returns a list with the prediction of the given dataset.
 	$ predict_regression(model, X, No_of_samples)   	-> Returns a list with the prediction of the given dataset.
 
 
