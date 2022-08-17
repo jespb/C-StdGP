@@ -1,10 +1,19 @@
+/* 
+* By using this file, you are agreeing to this product's EULA
+*
+* This product can be obtained in https://github.com/jespb/C-StdGP
+*
+* Copyright ©2021-2022 J. E. Batista
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
 #include <node.h>
 #include <individual.h>
-#include <STGP.h>
+#include <StdGP.h>
 #include <time.h>
 
 #include "arguments.c"
@@ -167,7 +176,7 @@ int main(int argc, char* argv[]){
 
 
 
-	struct STGP_t** models = calloc( RUNS+1, sizeof(struct STGP_t*));
+	struct StdGP_t** models = calloc( RUNS+1, sizeof(struct StdGP_t*));
 
 
 	for (int run = 0; run < RUNS; run++){
@@ -193,7 +202,7 @@ int main(int argc, char* argv[]){
 
 		// --------------------------------------------  RUN
 		
-		struct STGP_t* model = stgp_create(N_OPERATORS, OPERATORS, n_terminals, terminals,
+		struct StdGP_t* model = stdgp_create(N_OPERATORS, OPERATORS, n_terminals, terminals,
 			MAX_DEPTH, POPULATION_SIZE, MAX_GENERATION, TOURNAMENT_SIZE, ELITISM_SIZE,
 			LIMIT_DEPTH, THREADS, VERBOSE, Tr_samples, Tr_X, Tr_Y, Te_samples, Te_X, Te_Y);
 
@@ -211,7 +220,7 @@ int main(int argc, char* argv[]){
 		//if (model->verbose) printf("\n\nTotal Execution Time: %ldms\n", duration );
 
 
-		//stgp_destroy(model);
+		//stdgp_destroy(model);
 		models[run] = model;
 		
 
@@ -255,9 +264,9 @@ int main(int argc, char* argv[]){
 	
 	char* outname = calloc( (strlen(OUTPUT_DIR) +7+ strlen(DATASETS[0]) +1), sizeof(char) );
 	strcat(outname, OUTPUT_DIR);
-	strcat(outname, "stgp_c_");
+	strcat(outname, "stdgp_c_");
 	strcat(outname, DATASETS[0]);
-	FILE* out = fopen( outname,"w");//("%sstgp_c_%s",OUTPUT_DIR, outputname), "w");
+	FILE* out = fopen( outname,"w");//("%sstdgp_c_%s",OUTPUT_DIR, outputname), "w");
 	free(outname);
 	char buff[2048];
 	//fputs(string, out);
@@ -383,7 +392,7 @@ int main(int argc, char* argv[]){
 	free(dir);
 
 	for (int run = 0; run < RUNS; run++){
-		stgp_destroy(models[run]);
+		stdgp_destroy(models[run]);
 	}
 	string_array_destroy(terminals);
 	free(models);

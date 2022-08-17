@@ -1,3 +1,12 @@
+/* 
+* By using this file, you are agreeing to this product's EULA
+*
+* This product can be obtained in https://github.com/jespb/C-StdGP
+*
+* Copyright ©2021-2022 J. E. Batista
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

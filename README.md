@@ -1,18 +1,18 @@
-# C-STGP
-This is a, easy-to-use, scikit-learn inspired version of the STGP algorithm.
+# C-StdGP
+This is a, easy-to-use, scikit-learn inspired version of the Standard Genetic Programming (StdGP) algorithm.
 
 
 By using this file, you are agreeing to this product's EULA
-This product can be obtained in https://github.com/jespb/C-STGP
+This product can be obtained in https://github.com/jespb/C-StdGP
 Copyright ©2021-2022 J. E. Batista
 
 
 This file contains information about the command and flags used in the stand-alone version of this implementation and an explanation on how to import, use and edit this implementation.
 
 
-This implementation of STGP can be used in a stand-alone fashion using the following command and flags:
+This implementation of StdGP can be used in a stand-alone fashion using the following command and flags:
 
-$ python Main_STGP_standalone.py
+$ python Main_StdGP_standalone.py
 	
 	[-d datasets] 
 		- This flag expects a set of csv dataset names separated by ";" (e.g., a.csv;b.csv)
@@ -73,11 +73,11 @@ $ python Main_STGP_standalone.py
 
 How to use this implementation:
 	$ make
-	$ ./stgp [parameters]
+	$ ./stdgp [parameters]
 
 
 Useful methods:
-	$ struct STGP_t* model = stgp_create( ... )			-> creates the population;
+	$ struct StdGP_t* model = stdgp_create( ... )			-> creates the population;
 	$ fit(model)										-> trains the model;
 	$ predict_classification(model, X, No_of_samples)   -> Returns a list with the prediction of the given dataset.
 	$ predict_regression(model, X, No_of_samples)   	-> Returns a list with the prediction of the given dataset.
