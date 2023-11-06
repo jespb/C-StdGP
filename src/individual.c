@@ -143,7 +143,7 @@ double getWaF(struct individual_t *ind, int n_samples, double **X,
               double *Y) { // TODO
   int *pred_c = predict_individual(ind, n_samples, X);
 
-  int *hits = calloc(0, sizeof(int) * 5);
+  int *hits = calloc(4, sizeof(int) );
 
   for (int i = 0; i < n_samples; ++i) {
     hits[pred_c[i] + 2 * (int)Y[i]]++;
@@ -174,7 +174,7 @@ double getKappa(struct individual_t *ind, int n_samples, double **X,
                 double *Y) { // TODO
   int *pred_c = predict_individual(ind, n_samples, X);
 
-  int *hits = calloc(0, sizeof(int) * 5);
+  int *hits = calloc(4, sizeof(int) );
 
   for (int i = 0; i < n_samples; ++i) {
     hits[pred_c[i] + 2 * (int)Y[i]]++;

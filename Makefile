@@ -5,7 +5,7 @@ SDIR = src
 IDIR = include
 ODIR = obj
 #CC = gcc
-FLAGS = -I$(IDIR) -Wall
+FLAGS = -I$(IDIR) -O3 -Wall
 
 #$OBJS = $(ODIR)/node.o $(ODIR)/main.o
 
