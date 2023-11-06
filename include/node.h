@@ -30,7 +30,7 @@ double calculate(struct node_t* node, double* sample);
 int getSize_node(struct node_t *node);
 int getDepth_node(struct node_t *node);
 
-struct node_t * getRandomNode(struct node_t * node, int value);
+struct node_t * getRandomNode(struct node_t * node);
 
 void printNode(struct node_t *node, char** ops, char** term);
 char* toString_node( struct node_t *node, char** operators, char** terminals);

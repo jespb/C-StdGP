@@ -1,256 +1,260 @@
-/* 
-* By using this file, you are agreeing to this product's EULA
-*
-* This product can be obtained in https://github.com/jespb/C-StdGP
-*
-* Copyright ©2021-2022 J. E. Batista
-*/
+/*
+ * By using this file, you are agreeing to this product's EULA
+ *
+ * This product can be obtained in https://github.com/jespb/C-StdGP
+ *
+ * Copyright ©2021-2022 J. E. Batista
+ */
 
-
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include <individual.h>
 #include <node.h>
 
 extern struct individual_t Individual;
 
-struct individual_t* individual_create(int n_op, char** operators, int n_term, 
-	char** terminals, int max_depth){
-	struct individual_t* ret = malloc( sizeof(Individual) );
+struct individual_t *individual_create(int n_op, char **operators, int n_term,
+                                       char **terminals, int max_depth) {
+  struct individual_t *ret = malloc(sizeof(Individual));
 
-	ret->n_op = n_op;
-	ret->operators = operators;
+  ret->n_op = n_op;
+  ret->operators = operators;
 
-	ret->n_term = n_term;
-	ret->terminals = terminals;
+  ret->n_term = n_term;
+  ret->terminals = terminals;
 
-	ret->max_depth = max_depth;
+  ret->max_depth = max_depth;
 
-	ret->head = node_create(ret->n_op, ret->n_term, ret->max_depth, 0);
+  ret->head = node_create(ret->n_op, ret->n_term, ret->max_depth, 0);
 
-	ret->size = -1;
-	ret->depth = -1;
-	ret->fitness = -1;
-	ret->fit_calculated = 0;
+  ret->size = -1;
+  ret->depth = -1;
+  ret->fitness = -1;
+  ret->fit_calculated = 0;
 
-	ret->predictions_f = NULL;
-	ret->predictions_c = NULL;
+  ret->predictions_f = NULL;
+  ret->predictions_c = NULL;
 
-	return ret;
+  return ret;
 }
 
-void change_head(struct individual_t* ind, struct node_t* n){
-	if( ind->head != NULL) node_destroy(ind->head);
-	if( ind->predictions_f != NULL) free(ind->predictions_f);
-	if( ind->predictions_c != NULL) free(ind->predictions_c);
+void change_head(struct individual_t *ind, struct node_t *n) {
+  if (ind->head != NULL)
+    node_destroy(ind->head);
+  if (ind->predictions_f != NULL)
+    free(ind->predictions_f);
+  if (ind->predictions_c != NULL)
+    free(ind->predictions_c);
 
-	ind->head = n;
+  ind->head = n;
 }
 
-struct individual_t* clone_individual(struct individual_t* ind, int copy_head){
-	struct individual_t* ret = malloc( sizeof(Individual) );
+struct individual_t *clone_individual(struct individual_t *ind, int copy_head) {
+  struct individual_t *ret = malloc(sizeof(Individual));
 
-	ret->n_op = ind->n_op;
-	ret->operators = ind->operators;
+  ret->n_op = ind->n_op;
+  ret->operators = ind->operators;
 
-	ret->n_term = ind->n_term;
-	ret->terminals = ind->terminals;
+  ret->n_term = ind->n_term;
+  ret->terminals = ind->terminals;
 
-	ret->max_depth = ind->max_depth;
+  ret->max_depth = ind->max_depth;
 
-	ret->head = copy_head ? clone( ind->head ):NULL;
+  ret->head = copy_head ? clone(ind->head) : NULL;
 
-	ret->size = -1;
-	ret->depth = -1;
-	ret->fitness = -1;
-	ret->fit_calculated = 0;
+  ret->size = -1;
+  ret->depth = -1;
+  ret->fitness = -1;
+  ret->fit_calculated = 0;
 
-	ret->predictions_f = NULL;
-	ret->predictions_c = NULL;
+  ret->predictions_f = NULL;
+  ret->predictions_c = NULL;
 
-	return ret;
+  return ret;
 }
 
 /*
-* The individuals MUST have calculates the fitness beforehand
-* bigger fitness = better
-*/
-int compare(const void * a, const void * b){
-	struct individual_t* this  = ((struct individual_t*) ((const long int*) a)[0]);
-	struct individual_t* other = ((struct individual_t*) ((const long int*) b)[0]);
-	if (this->fitness > other->fitness ){
-		return -1;
-	}else if(this->fitness < other->fitness ){
-		return 1;
-	}else{
-		//return 0;
-		return getSize(this) - getSize(other);
-	}
+ * The individuals MUST have calculates the fitness beforehand
+ * bigger fitness = better
+ */
+int compare(const void *a, const void *b) {
+  struct individual_t *this = ((struct individual_t *)((const long int *)a)[0]);
+  struct individual_t *other =
+      ((struct individual_t *)((const long int *)b)[0]);
+  if (this->fitness > other->fitness) {
+    return -1;
+  } else if (this->fitness < other->fitness) {
+    return 1;
+  } else {
+    // return 0;
+    return getSize(this) - getSize(other);
+  }
 }
 
+double getFitness(struct individual_t *ind, int n_samples, double **training_X,
+                  double *training_Y) {
 
-double getFitness(struct individual_t* ind, int n_samples, double** training_X, double*  training_Y){
+  if (!ind->fit_calculated) {
+    ind->n_samples = n_samples;
+    ind->training_X = training_X;
+    ind->training_Y = training_Y;
 
-	if (!ind->fit_calculated){
-		ind->n_samples = n_samples;
-		ind->training_X = training_X;
-		ind->training_Y = training_Y;
+    int isFitnessRMSE = 0;
+    if (isFitnessRMSE) {
+      ind->fitness =
+          getRMSE(ind, n_samples, training_X, training_Y) * (-1) +
+          1; // negative for fitness, +1 to ser maximum as 1 (like accuracy)
+    } else {
+      ind->fitness = getWaF(ind, n_samples, training_X, training_Y);
+    }
 
-		int isFitnessRMSE = 0;
-		if (isFitnessRMSE){
-			ind->fitness = getRMSE(ind, n_samples, training_X, training_Y) * (-1) +1; // negative for fitness, +1 to ser maximum as 1 (like accuracy) 
-		}else{
-			ind->fitness = getWaF(ind, n_samples, training_X, training_Y);
-		}
-
-		ind->fit_calculated = 1;
-	}
-	return ind->fitness;
+    ind->fit_calculated = 1;
+  }
+  return ind->fitness;
 }
 
-double* getTrainingValuePredictions(struct individual_t* ind){
-	return ind->predictions_f;
+double *getTrainingValuePredictions(struct individual_t *ind) {
+  return ind->predictions_f;
 }
 
-int* getTrainingClassPredictions(struct individual_t* ind){
-	return ind->predictions_c;
+int *getTrainingClassPredictions(struct individual_t *ind) {
+  return ind->predictions_c;
 }
 
-double getAccuracy(struct individual_t* ind, int n_samples, double** X, double* Y){
-	int* pred_c = predict_individual(ind, n_samples, X);
+double getAccuracy(struct individual_t *ind, int n_samples, double **X,
+                   double *Y) {
+  int *pred_c = predict_individual(ind, n_samples, X);
 
-	int hits = 0;
-	for (int i = 0; i < n_samples; ++i){
-		if (pred_c[i] == Y[i]){
-			hits++;
-		}
-	}
+  int hits = 0;
+  for (int i = 0; i < n_samples; ++i) {
+    if (pred_c[i] == Y[i]) {
+      hits++;
+    }
+  }
 
-	free(pred_c);
+  free(pred_c);
 
-	return hits*1.0/n_samples;
-
+  return hits * 1.0 / n_samples;
 }
 
-double getWaF(struct individual_t* ind, int n_samples, double** X, double* Y){ // TODO
-	int* pred_c = predict_individual(ind, n_samples, X);
+double getWaF(struct individual_t *ind, int n_samples, double **X,
+              double *Y) { // TODO
+  int *pred_c = predict_individual(ind, n_samples, X);
 
-	int* hits = calloc( 0, sizeof(int) * 5 );
-	
-	for (int i = 0; i < n_samples; ++i){
-		hits[ pred_c[i] + 2* (int)Y[i] ] ++;
-	}
+  int *hits = calloc(0, sizeof(int) * 5);
 
-	if ( hits[0]+hits[1] == 0 || hits[0]+hits[2] == 0 || hits[3]+hits[1] == 0 || hits[3]+hits[2] == 0){
-		return 0; // the model is ignoring one of the classes
-	}
+  for (int i = 0; i < n_samples; ++i) {
+    hits[pred_c[i] + 2 * (int)Y[i]]++;
+  }
 
-	double p_1 = 1.0*hits[0]/(hits[0]+hits[1]);
-	double r_1 = 1.0*hits[0]/(hits[0]+hits[2]);
-	double f1_1 = 2.0*p_1*r_1/(p_1+r_1); 
-	double sup1 = 1.0*(hits[0]+hits[1])/n_samples;
+  if (hits[0] + hits[1] == 0 || hits[0] + hits[2] == 0 ||
+      hits[3] + hits[1] == 0 || hits[3] + hits[2] == 0) {
+    return 0; // the model is ignoring one of the classes
+  }
 
-	double p_2 = 1.0*hits[3]/(hits[3]+hits[2]);
-	double r_2 = 1.0*hits[3]/(hits[3]+hits[1]);
-	double f1_2 = 2.0*p_2*r_2/(p_2+r_2);
-	double sup2 = 1.0*(hits[2]+hits[3])/n_samples;
+  double p_1 = 1.0 * hits[0] / (hits[0] + hits[1]);
+  double r_1 = 1.0 * hits[0] / (hits[0] + hits[2]);
+  double f1_1 = 2.0 * p_1 * r_1 / (p_1 + r_1);
+  double sup1 = 1.0 * (hits[0] + hits[1]) / n_samples;
 
-	free(pred_c);
-	free(hits);
+  double p_2 = 1.0 * hits[3] / (hits[3] + hits[2]);
+  double r_2 = 1.0 * hits[3] / (hits[3] + hits[1]);
+  double f1_2 = 2.0 * p_2 * r_2 / (p_2 + r_2);
+  double sup2 = 1.0 * (hits[2] + hits[3]) / n_samples;
 
+  free(pred_c);
+  free(hits);
 
-	return f1_1*sup1 + f1_2*sup2;
-
+  return f1_1 * sup1 + f1_2 * sup2;
 }
 
-double getKappa(struct individual_t* ind, int n_samples, double** X, double* Y){ // TODO
-	int* pred_c = predict_individual(ind, n_samples, X);
+double getKappa(struct individual_t *ind, int n_samples, double **X,
+                double *Y) { // TODO
+  int *pred_c = predict_individual(ind, n_samples, X);
 
-	int* hits = calloc( 0, sizeof(int) * 5 );
-	
-	for (int i = 0; i < n_samples; ++i){
-		hits[ pred_c[i] + 2* (int)Y[i] ] ++;
-	}
+  int *hits = calloc(0, sizeof(int) * 5);
 
-	double observed_agreement = 1.0*(hits[0]+hits[3])/n_samples;
+  for (int i = 0; i < n_samples; ++i) {
+    hits[pred_c[i] + 2 * (int)Y[i]]++;
+  }
 
-	double yes1 = 1.0*(hits[0]+hits[1])/n_samples;
-	double yes2 = 1.0*(hits[0]+hits[2])/n_samples;
-	double no1 = 1.0*(hits[2]+hits[3])/n_samples;
-	double no2 = 1.0*(hits[1]+hits[3])/n_samples;
-	double chance_agreement = yes1*yes2 + no1*no2;
+  double observed_agreement = 1.0 * (hits[0] + hits[3]) / n_samples;
 
-	free(pred_c);
-	free(hits);
+  double yes1 = 1.0 * (hits[0] + hits[1]) / n_samples;
+  double yes2 = 1.0 * (hits[0] + hits[2]) / n_samples;
+  double no1 = 1.0 * (hits[2] + hits[3]) / n_samples;
+  double no2 = 1.0 * (hits[1] + hits[3]) / n_samples;
+  double chance_agreement = yes1 * yes2 + no1 * no2;
 
-	return (observed_agreement - chance_agreement)/(1-chance_agreement);
+  free(pred_c);
+  free(hits);
 
+  return (observed_agreement - chance_agreement) / (1 - chance_agreement);
 }
 
-double getRMSE(struct individual_t* ind, int n_samples, double** X, double* Y){
-	double* pred = calculate_individual(ind, n_samples, X);
+double getRMSE(struct individual_t *ind, int n_samples, double **X, double *Y) {
+  double *pred = calculate_individual(ind, n_samples, X);
 
-	double rmse = 0.0;
-	for (int i = 0; i < n_samples; ++i){
-		rmse += pow(pred[i] - Y[i], 2);
-	}
+  double rmse = 0.0;
+  for (int i = 0; i < n_samples; ++i) {
+    rmse += pow(pred[i] - Y[i], 2);
+  }
 
-	free(pred);
+  free(pred);
 
-	return pow(rmse/n_samples, 0.5);
+  return pow(rmse / n_samples, 0.5);
 }
 
-double* calculate_individual(struct individual_t* ind, int n_samples, double** X){
-	double* ret = malloc( n_samples * sizeof(double));
+double *calculate_individual(struct individual_t *ind, int n_samples,
+                             double **X) {
+  double *ret = malloc(n_samples * sizeof(double));
 
-	for (int i = 0; i < n_samples; ++i){
-		ret[i] = calculate(ind->head, X[i]);
-	}
+  for (int i = 0; i < n_samples; ++i) {
+    ret[i] = calculate(ind->head, X[i]);
+  }
 
-	return ret;
+  return ret;
 }
 
-int* predict_individual(struct individual_t* ind, int n_samples, double** X){
-	int* ret = malloc( n_samples * sizeof(int));
+int *predict_individual(struct individual_t *ind, int n_samples, double **X) {
+  int *ret = malloc(n_samples * sizeof(int));
 
-	for (int i = 0; i < n_samples; ++i){
-		ret[i] = calculate(ind->head, X[i]) > 0.5? 1:0;
-	}
+  for (int i = 0; i < n_samples; ++i) {
+    ret[i] = calculate(ind->head, X[i]) > 0.5 ? 1 : 0;
+  }
 
-	return ret;
+  return ret;
 }
 
-
-int getSize(struct individual_t* ind){
-	if (ind->size == -1){
-		ind->size = getSize_node(ind->head);
-	}
-	return ind->size;
+int getSize(struct individual_t *ind) {
+  if (ind->size == -1) {
+    ind->size = getSize_node(ind->head);
+  }
+  return ind->size;
 }
 
-int getDepth(struct individual_t* ind){
-	if (ind->depth == -1){
-		ind->depth = getDepth_node(ind->head);
-	}
-	return ind->depth;
+int getDepth(struct individual_t *ind) {
+  if (ind->depth == -1) {
+    ind->depth = getDepth_node(ind->head);
+  }
+  return ind->depth;
 }
 
-struct node_t* getHead(struct individual_t* ind){
-	return ind->head;
+struct node_t *getHead(struct individual_t *ind) { return ind->head; }
+
+char *toString_individual(struct individual_t *ind) {
+  return toString_node(ind->head, ind->operators, ind->terminals);
 }
 
-char* toString_individual(struct individual_t* ind){
-	return toString_node(ind->head, ind->operators, ind->terminals);
+void individual_destroy(struct individual_t *ind) {
+  if (ind->head != NULL)
+    node_destroy(ind->head);
+  if (ind->predictions_f != NULL)
+    free(ind->predictions_f);
+  if (ind->predictions_c != NULL)
+    free(ind->predictions_c);
+
+  free(ind);
 }
-
-
-void individual_destroy(struct individual_t* ind){
-	if( ind->head != NULL)	node_destroy(ind->head);
-	if( ind->predictions_f != NULL) free(ind->predictions_f);
-	if( ind->predictions_c != NULL) free(ind->predictions_c);
-
-	free(ind);
-}
-
