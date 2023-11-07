@@ -17,45 +17,54 @@
 
 #include "arguments.c"
 
-int length(char **c) {
+int getArrayLength(char **c) {
   int l = 0;
+
   while (c[l] != NULL) {
     l++;
   }
   return l;
 }
 
-int get_DS_size(char *filename, int header) {
-  char str[1028];
+int getDatasetLength(char *filename, int header) {
   FILE *file;
-  file = fopen(filename, "r");
-  int i;
-  for (i = 0; fscanf(file, "%s", str) != EOF; ++i) {
-  }
-  fclose(file);
+  int count = 0;
+  char c;
 
-  return i - header;
+  file = fopen(filename, "r");
+
+  for ( c = getc(file); c != EOF; c = getc(file)){
+  	if (c == '\n'){
+  		count++;
+  	}
+  }
+
+  return count - header;
 }
 
-double **get_DS_X(char *filename, int n_samples, int header) {
+
+double **getDataset(char *filename, int n_samples, int header) {
   char str[1028];
+  char **line;
   FILE *file;
+  double **ret;
+  int i, len, x;
+
+
   file = fopen(filename, "r");
 
   if (header) {
     fscanf(file, "%s", str);
-    // printf("Skipped Header: %s\n", str );
   }
 
-  double **ret = calloc(n_samples + 1, sizeof(double *));
-  int i = 0;
+  ret = calloc(n_samples + 1, sizeof(double *));
   for (i = 0; i < n_samples; ++i) {
     fscanf(file, "%s", str);
-    char **line = split(str, -1, ",");
+    line = split(str, -1, ",");
 
-    int len = length(line);
+    len = getArrayLength(line);
     ret[i] = calloc(len, sizeof(double));
-    for (int x = 0; x < len - 1; ++x) { // -1 para ignorar a coluna da classe
+    for (x = 0; x < len; ++x) {
       ret[i][x] = atof(line[x]);
     }
     string_array_destroy(line);
@@ -65,144 +74,131 @@ double **get_DS_X(char *filename, int n_samples, int header) {
   return ret;
 }
 
-double *get_DS_Y(char *filename, int n_samples, int header) {
-  char str[1028];
-  FILE *file;
-  file = fopen(filename, "r");
 
-  if (header) {
-    fscanf(file, "%s", str);
-    // printf("Skipped Header: %s\n", str );
-  }
+void shuffleDataset(double **ds, int n_samples) {
+  int i, j;
+  double *tmp;
 
-  double *ret = calloc(n_samples + 1, sizeof(double));
-  int i = 0;
-  for (i = 0; i < n_samples; ++i) {
-    fscanf(file, "%s", str);
-    char **line = split(str, -1, ",");
-
-    int len = length(line);
-    ret[i] = atof(line[len - 1]);
-
-    string_array_destroy(line);
-  }
-  fclose(file);
-
-  return ret;
-}
-
-void shuffle_DS(double **X, double *Y, int n_samples) {
   if (n_samples > 1) {
-    for (int i = 0; i < n_samples - 1; i++) {
-      int j = i + rand() / (RAND_MAX / (n_samples - i) + 1);
+    for (i = 0; i < n_samples - 1; i++) {
+      j = i + rand() / (RAND_MAX / (n_samples - i) + 1);
 
-      double *tmpX = X[j];
-      X[j] = X[i];
-      X[i] = tmpX;
-
-      double tmpY = Y[j];
-      Y[j] = Y[i];
-      Y[i] = tmpY;
+      tmp = ds[j];
+      ds[j] = ds[i];
+      ds[i] = tmp;
     }
   }
 }
 
-double **getTrainingX(double **X, int n_samples) {
-  int limit = (int)(n_samples * TRAIN_FRACTION);
 
-  double **ret = malloc(limit * sizeof(double *));
-  for (int i = 0; i < limit; ++i) {
-    ret[i] = X[i];
+double **getDatasetX(double **ds, int n_samples, int isTraining) {
+  int mini, maxi, i;
+  double **ret;
+
+  if (isTraining  == 0){
+  	mini = 0;
+  	maxi = (int)(n_samples * TRAIN_FRACTION);
+  }else{
+  	mini = (int)(n_samples * TRAIN_FRACTION);
+  	maxi = n_samples;
+  }
+
+  ret = calloc( maxi-mini, sizeof(double *));
+  for (i = mini; i < maxi; i++) {
+  	// The target value is passed but not used by the classifier
+    ret[i-mini] = ds[i]; 
   }
   return ret;
 }
 
-double *getTrainingY(double *Y, int n_samples) {
-  int limit = (int)(n_samples * TRAIN_FRACTION);
+double *getDatasetY(double **ds, int n_samples, int n_terminals, int isTraining) {
+  int mini, maxi, i;
+  double *ret;
 
-  double *ret = malloc(limit * sizeof(double));
-  for (int i = 0; i < limit; ++i) {
-    ret[i] = Y[i];
+  if (isTraining == 0){
+  	mini = 0;
+  	maxi = (int)(n_samples * TRAIN_FRACTION);
+  }else{
+  	mini = (int)(n_samples * TRAIN_FRACTION);
+  	maxi = n_samples;
+  }
+
+  ret = calloc( maxi-mini, sizeof(double));
+  for (i = mini; i < maxi; i++) {
+    ret[i-mini] = ds[i][n_terminals]; // Target value
   }
   return ret;
 }
 
-double **getTestX(double **X, int n_samples) {
-  int limit = (int)(n_samples * TRAIN_FRACTION);
 
-  double **ret = malloc((n_samples - limit) * sizeof(double *));
-  for (int i = limit; i < n_samples; ++i) {
-    ret[i - limit] = X[i];
-  }
-  return ret;
-}
 
-double *getTestY(double *Y, int n_samples) {
-  int limit = (int)(n_samples * TRAIN_FRACTION);
 
-  double *ret = malloc((n_samples - limit) * sizeof(double));
-  for (int i = limit; i < n_samples; ++i) {
-    ret[i - limit] = Y[i];
-  }
-  return ret;
-}
+
+
 
 int main(int argc, char *argv[]) {
+  char *dir, *outname, *ind_str ;
+  char **terminals;
+  char str[1028], buff[2048];
+  FILE *file, *out;
+  int n_terminals, header, n_samples, run, Tr_samples, Te_samples, i;
+  struct StdGP_t *model;
+  struct StdGP_t **models;
+  double **dataset, **Tr_X, **Te_X;
+  double *Tr_Y, *Te_Y;
+
 
   initArguments();
   updateArguments(argc, argv);
 
-  char *dir =
-      calloc((strlen(DATASETS_DIR) + strlen(DATASETS[0]) + 1), sizeof(char));
+  dir = calloc((strlen(DATASETS_DIR) + strlen(DATASETS[0]) + 1), sizeof(char));
   strcat(dir, DATASETS_DIR);
   strcat(dir, DATASETS[0]);
   printf("DATASET: %s\n", dir);
 
-  char str[1028];
-  FILE *file;
   file = fopen(dir, "r");
 
   fscanf(file, "%s", str);
 
-  int n_terminals = count(str, ",") - 1; // Ignora a ultima coluna
-  char **terminals = split(str, n_terminals, ",");
+  n_terminals = count(str, ",") - 1; // Ignores last column (Target)
+  terminals = split(str, n_terminals, ",");
 
-  int header = 1;
-  int n_samples = get_DS_size(dir, header);
+  header = 1;
+  n_samples = getDatasetLength(dir, header);
 
   fclose(file);
 
-  struct StdGP_t **models = calloc(RUNS + 1, sizeof(struct StdGP_t *));
+  models = calloc(RUNS + 1, sizeof(struct StdGP_t *));
 
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     printf("\n\n\n---> RUN %2d <---\n", run);
 
     // --------------------------------------------  INIT RUN
 
     srand(run + 1);
 
-    double **X = get_DS_X(dir, n_samples, header);
-    double *Y = get_DS_Y(dir, n_samples, header);
+    dataset = getDataset(dir, n_samples, header);
+    shuffleDataset(dataset, n_samples);
 
-    shuffle_DS(X, Y, n_samples);
+    Tr_samples = (int)(n_samples * TRAIN_FRACTION);
+    Te_samples = n_samples - (int)(n_samples * TRAIN_FRACTION);
 
-    int Tr_samples = (int)(n_samples * TRAIN_FRACTION);
-    int Te_samples = n_samples - (int)(n_samples * TRAIN_FRACTION);
-
-    double **Tr_X = getTrainingX(X, n_samples);
-    double *Tr_Y = getTrainingY(Y, n_samples);
-    double **Te_X = getTestX(X, n_samples);
-    double *Te_Y = getTestY(Y, n_samples);
+    Tr_X = getDatasetX(dataset, n_samples,0);
+    Tr_Y = getDatasetY(dataset, n_samples, n_terminals,0);
+    Te_X = getDatasetX(dataset, n_samples,1);
+    Te_Y = getDatasetY(dataset, n_samples, n_terminals,1);
 
     // --------------------------------------------  RUN
 
-    struct StdGP_t *model =
+    model =
         stdgp_create(N_OPERATORS, OPERATORS, n_terminals, terminals, MAX_DEPTH,
                      POPULATION_SIZE, MAX_GENERATION, TOURNAMENT_SIZE,
                      ELITISM_SIZE, LIMIT_DEPTH, THREADS, VERBOSE, Tr_samples,
                      Tr_X, Tr_Y, Te_samples, Te_X, Te_Y);
 
+
     fit(model);
+
 
     // stdgp_destroy(model);
     models[run] = model;
@@ -210,11 +206,10 @@ int main(int argc, char *argv[]) {
     // --------------------------------------------  CLOSE RUN
 
     // free dataset
-    for (int i = 0; i < n_samples; ++i) {
-      free(X[i]);
+    for (i = 0; i < n_samples; ++i) {
+      free(dataset[i]);
     }
-    free(X);
-    free(Y);
+    free(dataset);
     free(Tr_X);
     free(Tr_Y);
     free(Te_X);
@@ -224,32 +219,33 @@ int main(int argc, char *argv[]) {
            models[run]->testAccuracyOverTime[10]);
   }
 
+
+
+
   mkdir(OUTPUT_DIR, 0700);
 
-  char *outname =
+  outname =
       calloc((strlen(OUTPUT_DIR) + 7 + strlen(DATASETS[0]) + 1), sizeof(char));
   strcat(outname, OUTPUT_DIR);
   strcat(outname, "stdgp_c_");
   strcat(outname, DATASETS[0]);
-  FILE *out =
-      fopen(outname, "w"); //("%sstdgp_c_%s",OUTPUT_DIR, outputname), "w");
+  out = fopen(outname, "w"); //("%sstdgp_c_%s",OUTPUT_DIR, outputname), "w");
   free(outname);
-  char buff[2048];
   // fputs(string, out);
 
   printf("OUTPUT HEADER...\n");
   fputs("Attribute,Run,", out);
-  for (int i = 0; i < MAX_GENERATION; ++i) {
+  for (i = 0; i < MAX_GENERATION; ++i) {
     sprintf(buff, "%d,", i);
     fputs(buff, out);
   }
   fputs("\n\n", out);
 
   printf("OUTPUT TR-Accuracy...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Training-Accuracy,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->trainingAccuracyOverTime[i]);
       fputs(buff, out);
     }
@@ -258,10 +254,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TE-Accuracy...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Test-Accuracy,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->testAccuracyOverTime[i]);
       fputs(buff, out);
     }
@@ -270,10 +266,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TR-WaF...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Training-WaF,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->trainingWaFOverTime[i]);
       fputs(buff, out);
     }
@@ -282,10 +278,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TE-WaF...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Test-WaF,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->testWaFOverTime[i]);
       fputs(buff, out);
     }
@@ -294,10 +290,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TR-Kappa...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Training-Kappa,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->trainingKappaOverTime[i]);
       fputs(buff, out);
     }
@@ -306,10 +302,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TE-Kappa...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Test-Kappa,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->testKappaOverTime[i]);
       fputs(buff, out);
     }
@@ -318,10 +314,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TR-RMSE...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Training-RMSE,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->trainingRMSEOverTime[i]);
       fputs(buff, out);
     }
@@ -330,10 +326,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TE-RMSE...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Test-RMSE,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->testRMSEOverTime[i]);
       fputs(buff, out);
     }
@@ -342,10 +338,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT FITNESS...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Fitness,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->fitnessOverTime[i]);
       fputs(buff, out);
     }
@@ -354,10 +350,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT SIZE...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Size,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%d,", models[run]->sizeOverTime[i]);
       fputs(buff, out);
     }
@@ -366,10 +362,10 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT TIME...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Time,%d,", run);
     fputs(buff, out);
-    for (int i = 0; i < MAX_GENERATION; ++i) {
+    for (i = 0; i < MAX_GENERATION; ++i) {
       sprintf(buff, "%f,", models[run]->timeOverTime[i]);
       fputs(buff, out);
     }
@@ -378,12 +374,12 @@ int main(int argc, char *argv[]) {
   fputs("\n", out);
 
   printf("OUTPUT FINAL MODEL...\n");
-  for (int run = 0; run < RUNS; run++) {
+  for (run = 0; run < RUNS; run++) {
     sprintf(buff, "Final_Model,%d,", run);
     fputs(buff, out);
-    char *str = toString_individual(models[run]->bestIndividual);
-    sprintf(buff, "%s,\n", str);
-    free(str);
+    ind_str = toString_individual(models[run]->bestIndividual);
+    sprintf(buff, "%s,\n", ind_str);
+    free(ind_str);
     fputs(buff, out);
   }
   fputs("\n", out);

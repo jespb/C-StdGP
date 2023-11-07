@@ -122,7 +122,7 @@ void fit(struct StdGP_t *stdgp) {
   while (stdgp->currentGeneration < stdgp->max_generation) {
     long duration = 0;
 
-    if (!stoppingCriteria(stdgp)) {
+    if (!stoppingCriteria(stdgp)) { 
       if (stdgp->verbose && stdgp->currentGeneration % 1 == 0)
         printf("Generation %3d:", stdgp->currentGeneration);
 
