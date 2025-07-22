@@ -181,7 +181,7 @@ qsort( a, 6, sizeof(int), compare )
 */
 void nextGeneration(struct StdGP_t *stdgp) {
   // Calculate the individual's fitness
-  #pragma omp parallel for
+  #pragma omp parallel for schedule(static)
   for (int i = 0; i < stdgp->population_size; ++i) {
     getFitness(stdgp->population[i], stdgp->n_training_samples,
                stdgp->training_X, stdgp->training_Y);

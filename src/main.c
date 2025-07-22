@@ -54,12 +54,18 @@ double **getDataset(char *filename, int n_samples, int header) {
   file = fopen(filename, "r");
 
   if (header) {
-    fscanf(file, "%s", str);
+    if (fscanf(file, "%s", str) != 1) {
+      fprintf(stderr, "Error reading string from file\n");
+      exit(EXIT_FAILURE);
+    }
   }
 
   ret = calloc(n_samples + 1, sizeof(double *));
   for (i = 0; i < n_samples; ++i) {
-    fscanf(file, "%s", str);
+    if (fscanf(file, "%s", str) != 1) {
+      fprintf(stderr, "Error reading string from file\n");
+      exit(EXIT_FAILURE);
+    }
     line = split(str, -1, ",");
 
     len = getArrayLength(line);
@@ -158,7 +164,10 @@ int main(int argc, char *argv[]) {
 
   file = fopen(dir, "r");
 
-  fscanf(file, "%s", str);
+  if (fscanf(file, "%s", str) != 1) {
+    fprintf(stderr, "Error reading string from file\n");
+    exit(EXIT_FAILURE);
+  }
 
   n_terminals = count(str, ",") - 1; // Ignores last column (Target)
   terminals = split(str, n_terminals, ",");
@@ -225,7 +234,7 @@ int main(int argc, char *argv[]) {
   mkdir(OUTPUT_DIR, 0700);
 
   outname =
-      calloc((strlen(OUTPUT_DIR) + 7 + strlen(DATASETS[0]) + 1), sizeof(char));
+      calloc((strlen(OUTPUT_DIR) + 7 + strlen(DATASETS[0]) + 2), sizeof(char));
   strcat(outname, OUTPUT_DIR);
   strcat(outname, "stdgp_c_");
   strcat(outname, DATASETS[0]);

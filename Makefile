@@ -5,7 +5,7 @@ SDIR = src
 IDIR = include
 ODIR = obj
 #CC = clang
-FLAGS = -I$(IDIR) -Wall -fopenmp
+FLAGS = -I$(IDIR) -Wall -fopenmp -O3
 
 #$OBJS = $(ODIR)/node.o $(ODIR)/main.o
 
