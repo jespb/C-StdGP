@@ -5,7 +5,7 @@ SDIR = src
 IDIR = include
 ODIR = obj
 #CC = clang
-FLAGS = -I$(IDIR) -Wall
+FLAGS = -I$(IDIR) -Wall -fopenmp
 
 #$OBJS = $(ODIR)/node.o $(ODIR)/main.o
 
@@ -17,7 +17,7 @@ objdir:
 	mkdir -p $(ODIR)
 
 compile: arguments.o node.o individual.o geneticoperators.o StdGP.o main.o
-	$(CC) $(ODIR)/StdGP.o $(ODIR)/geneticoperators.o $(ODIR)/individual.o $(ODIR)/node.o $(ODIR)/main.o -o exec_StdGP  -lm
+	$(CC) $(ODIR)/StdGP.o $(ODIR)/geneticoperators.o $(ODIR)/individual.o $(ODIR)/node.o $(ODIR)/main.o -o exec_StdGP  -lm -fopenmp
 
 StdGP.o: $(SDIR)/StdGP.c $(IDIR)/StdGP.h $(IDIR)/geneticoperators.h $(IDIR)/individual.h
 	$(CC) -c $(SDIR)/StdGP.c $(FLAGS) -o $(ODIR)/StdGP.o
