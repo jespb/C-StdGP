@@ -44,28 +44,37 @@ int getDatasetLength(char *filename, int header) {
 
 
 double **getDataset(char *filename, int n_samples, int header) {
-  char str[1028];
+  char *str;
   char **line;
   FILE *file;
   double **ret;
   int i, len, x;
+  size_t bufsize = 8192; // We'll use a larger buffer for large inputs
 
 
   file = fopen(filename, "r");
 
+  // Allocate a big enough buffer for the header line
+  str = calloc(bufsize, sizeof(char));
+
   if (header) {
-    if (fscanf(file, "%s", str) != 1) {
+    if (fgets(str, bufsize, file) == NULL) {
       fprintf(stderr, "Error reading string from file\n");
       exit(EXIT_FAILURE);
     }
+    // Remove newline character if present
+    str[strcspn(str, "\n")] = 0;
   }
 
   ret = calloc(n_samples + 1, sizeof(double *));
   for (i = 0; i < n_samples; ++i) {
-    if (fscanf(file, "%s", str) != 1) {
+    if (fgets(str, bufsize, file) == NULL) {
       fprintf(stderr, "Error reading string from file\n");
       exit(EXIT_FAILURE);
     }
+    // Remove newline character
+    str[strcspn(str, "\n")] = 0;
+    
     line = split(str, -1, ",");
 
     len = getArrayLength(line);
@@ -76,6 +85,7 @@ double **getDataset(char *filename, int n_samples, int header) {
     string_array_destroy(line);
   }
   fclose(file);
+  free(str);
 
   return ret;
 }
@@ -145,7 +155,7 @@ double *getDatasetY(double **ds, int n_samples, int n_terminals, int isTraining)
 int main(int argc, char *argv[]) {
   char *dir, *outname, *ind_str ;
   char **terminals;
-  char str[1028], buff[2048];
+  char buff[2048];
   FILE *file, *out;
   int n_terminals, header, n_samples, run, Tr_samples, Te_samples, i;
   struct StdGP_t *model;
@@ -164,13 +174,20 @@ int main(int argc, char *argv[]) {
 
   file = fopen(dir, "r");
 
-  if (fscanf(file, "%s", str) != 1) {
-    fprintf(stderr, "Error reading string from file\n");
+  // Read the header line with a bigger buffer to handle large datasets
+  char *header_line = calloc(10240, sizeof(char)); // 10KB buffer for header
+  if (fgets(header_line, 10240, file) == NULL) {
+    fprintf(stderr, "Error reading header from file\n");
     exit(EXIT_FAILURE);
   }
+  
+  // Remove newline if present
+  header_line[strcspn(header_line, "\n")] = 0;
 
-  n_terminals = count(str, ",") - 1; // Ignores last column (Target)
-  terminals = split(str, n_terminals, ",");
+  n_terminals = count(header_line, ",") - 1; // Ignores last column (Target)
+  terminals = split(header_line, n_terminals, ",");
+  
+  free(header_line);
 
   header = 1;
   n_samples = getDatasetLength(dir, header);
